@@ -93,9 +93,9 @@ func (a *API) submitWorkJSON(ctx context.Context, req *SubmitWorkJSONReq) Respon
 		Height:            req.BlockHeader.Height,
 		PreviousBlockHash: req.BlockHeader.PreviousBlockHash,
 		Timestamp:         req.BlockHeader.Timestamp,
-		Nonce:             req.BlockHeader.Nonce,
-		Bits:              req.BlockHeader.Bits,
-		BlockCommitment:   *req.BlockHeader.BlockCommitment,
+		//Nonce:             req.BlockHeader.Nonce,
+		//Bits:              req.BlockHeader.Bits,
+		BlockCommitment: *req.BlockHeader.BlockCommitment,
 	}
 
 	if err := a.SubmitWork(bh); err != nil {
@@ -152,9 +152,9 @@ func (a *API) GetWorkJSON() (*GetWorkJSONResp, error) {
 			Height:            bh.Height,
 			PreviousBlockHash: bh.PreviousBlockHash,
 			Timestamp:         bh.Timestamp,
-			Nonce:             bh.Nonce,
-			Bits:              bh.Bits,
-			BlockCommitment:   &bh.BlockCommitment,
+			//			Nonce:             bh.Nonce,
+			//			Bits:              bh.Bits,
+			BlockCommitment: &bh.BlockCommitment,
 		},
 		Seed: seed,
 	}, nil
