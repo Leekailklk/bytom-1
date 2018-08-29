@@ -309,7 +309,6 @@ func (a *API) createrawpegin(ctx context.Context, ins struct {
 	// 增加spv验证以及连接主链api查询交易的确认数
 
 	// 找出与claim script有关联的交易的输出
-	var address string
 	var controlProg []byte
 	nOut := len(ins.RawTx.Outputs)
 	if ins.ClaimScript == "" {
@@ -320,7 +319,7 @@ func (a *API) createrawpegin(ctx context.Context, ins struct {
 		}
 
 		for _, cp := range cps {
-			address, controlProg = a.wallet.AccountMgr.GetPeginControlPrograms(cp.ControlProgram)
+			_, controlProg = a.wallet.AccountMgr.GetPeginControlPrograms(cp.ControlProgram)
 			if controlProg == nil {
 				continue
 			}
@@ -328,7 +327,7 @@ func (a *API) createrawpegin(ctx context.Context, ins struct {
 			nOut = getPeginTxnOutputIndex(ins.RawTx, controlProg)
 		}
 	} else {
-		address, controlProg = a.wallet.AccountMgr.GetPeginControlPrograms([]byte(ins.ClaimScript))
+		_, controlProg = a.wallet.AccountMgr.GetPeginControlPrograms([]byte(ins.ClaimScript))
 		// 获取交易的输出
 		nOut = getPeginTxnOutputIndex(ins.RawTx, controlProg)
 	}
@@ -355,35 +354,23 @@ func (a *API) createrawpegin(ctx context.Context, ins struct {
 	// 构造交易
 	// 用输出作为交易输入 生成新的交易
 	builder := txbuilder.NewBuilder(time.Now())
-	// TODO 手续费怎么处理
-	/*
-		// 增加手续费 spend
-		txInput := types.NewSpendInput(nil, bc.Hash{}, *ins.RawTx.Outputs[nOut].AssetId, 0, 0, cp.ControlProgram)
-		if err = builder.AddInput(txInput, &txbuilder.SigningInstruction{}); err != nil {
-			return NewErrorResponse(err)
-		}
-	*/
 	// TODO 根据raw tx生成一个utxo
 	//txInput := types.NewClaimInputInput(nil, *ins.RawTx.Outputs[nOut].AssetId, ins.RawTx.Outputs[nOut].Amount, cp.ControlProgram)
-	txInput := types.NewClaimInputInput(nil, ins.RawTx.ID, *ins.RawTx.Outputs[nOut].AssetId, ins.RawTx.Outputs[nOut].Amount, 0, cp.ControlProgram)
+	txInput := types.NewClaimInputInput(nil, ins.RawTx.ID, *ins.RawTx.Outputs[nOut].AssetId, ins.RawTx.Outputs[nOut].Amount, uint64(nOut), cp.ControlProgram)
 	if err := builder.AddInput(txInput, &txbuilder.SigningInstruction{}); err != nil {
-		//return NewErrorResponse(err)
 		return nil
 	}
 	program, err := a.wallet.AccountMgr.CreateAddress(cp.AccountID, false)
 	if err != nil {
-		//return NewErrorResponse(err)
 		return nil
 	}
 	outputAccount := ins.RawTx.Outputs[nOut].Amount
 	if err = builder.AddOutput(types.NewTxOutput(*ins.RawTx.Outputs[nOut].AssetId, outputAccount, program.ControlProgram)); err != nil {
-		//return NewErrorResponse(err)
 		return nil
 	}
 
 	tmpl, txData, err := builder.Build()
 	if err != nil {
-		//return NewErrorResponse(err)
 		return nil
 	}
 
