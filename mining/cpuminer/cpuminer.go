@@ -5,13 +5,13 @@
 package cpuminer
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/bytom/account"
-	"github.com/bytom/consensus/difficulty"
 	"github.com/bytom/mining"
 	"github.com/bytom/protocol"
 	"github.com/bytom/protocol/bc"
@@ -45,11 +45,12 @@ type CPUMiner struct {
 // target difficulty.
 func (m *CPUMiner) solveBlock(block *types.Block, ticker *time.Ticker, quit chan struct{}) bool {
 	header := &block.BlockHeader
-	seed, err := m.chain.CalcNextSeed(&header.PreviousBlockHash)
-	if err != nil {
-		return false
-	}
-
+	/*
+		seed, err := m.chain.CalcNextSeed(&header.PreviousBlockHash)
+		if err != nil {
+			return false
+		}
+	*/
 	for i := uint64(0); i <= maxNonce; i++ {
 		select {
 		case <-quit:
@@ -60,12 +61,13 @@ func (m *CPUMiner) solveBlock(block *types.Block, ticker *time.Ticker, quit chan
 			}
 		default:
 		}
-
-		header.Nonce = i
-		headerHash := header.Hash()
-		if difficulty.CheckProofOfWork(&headerHash, seed, header.Bits) {
-			return true
-		}
+		/*
+			header.Nonce = i
+			headerHash := header.Hash()
+			if difficulty.CheckProofOfWork(&headerHash, seed, header.Bits) {
+				return true
+			}
+		*/
 	}
 	return false
 }
@@ -94,6 +96,7 @@ out:
 			log.Errorf("Mining: failed on create NewBlockTemplate: %v", err)
 			continue
 		}
+		fmt.Println(block)
 		// todo
 		/*
 			if m.solveBlock(block, ticker, quit) {
